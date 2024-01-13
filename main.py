@@ -12,7 +12,8 @@ SCRAPE_OPS_API_KEY = os.environ['SCRAPE_OPS_API_KEY']
 SHOULD_REQUEST_FLAG_STR = 'should_request'
 SHOULD_REQUEST_WITH_STORE_FLAG_STR = 'should_request_with_store'
 
-STORE_FILE_NAME = 'content.txt'
+STORE_FILE_NAME_HTML = 'content.txt'
+STORE_FILE_NAME_DATE = 'date.txt'
 
 
 class Target(TypedDict):
@@ -22,6 +23,10 @@ class Target(TypedDict):
 
 class Result(Target):
     count: int
+
+class ScrapeResult(TypedDict):
+    count: int
+    date: str
 
 class TitleException(Exception):
     pass
@@ -38,7 +43,7 @@ def main():
 
     for target in targets:
         try:
-            count = scrape(
+            result = scrape(
                 should_request=should_request,
                 should_request_with_store=should_request_with_store,
                 scrape_ops_endpoint=SCRAPE_OPS_ENDPOINT,
@@ -46,9 +51,12 @@ def main():
                 target_url=target['url'],
                 target_job_title=target['job_title'],
                 target_job_location=target['job_location'],
-                store_file_name=STORE_FILE_NAME,
+                store_file_name_html=STORE_FILE_NAME_HTML,
+                store_file_name_date=STORE_FILE_NAME_DATE,
             )
-            results.append({"target_url": target['url'], "job_title": target['job_title'], "job_location": target['job_location'], "count": count})
+            count = result['count']
+            date = result['date']
+            results.append({"target_url": target['url'], "job_title": target['job_title'], "job_location": target['job_location'], "count": count, "date": date})
         except Exception as e:
             print(f"Error while scraping target '{target['url']}': {str(e)}")
     store(results)
@@ -72,22 +80,27 @@ def scrape(
         target_url: str,
         target_job_title: str,
         target_job_location: str,
-        store_file_name: str,
-    ):
+        store_file_name_html: str,
+        store_file_name_date: str,
+    ) -> ScrapeResult:
     if should_request or should_request_with_store:
-        html = proxy_scrape(target_url, scrape_ops_endpoint, scrape_ops_api_key)
+        result = proxy_scrape(target_url, scrape_ops_endpoint, scrape_ops_api_key)
+        html = result['html']
+        date = result['date']
 
     if should_request_with_store:
-        store_html_as_file(html, store_file_name)
+        store_text_as_file(html, store_file_name_html)
+        store_text_as_file(date, store_file_name_date)
 
     if not should_request and not should_request_with_store:
-        html = restore_html_from_file(store_file_name)
+        html = restore_text_from_file(store_file_name_html)
+        date = restore_text_from_file(store_file_name_date)
 
     title = get_page_title(html)
 
     verify_title(title, target_job_title, target_job_location)
 
-    return extract_number_from_title(title)
+    return {"count": extract_number_from_title(title), "date": date}
 
 def proxy_scrape(target_url: str, scrape_ops_endpoint: str, scrape_ops_api_key: str) -> str:
     response = requests.get(
@@ -98,13 +111,16 @@ def proxy_scrape(target_url: str, scrape_ops_endpoint: str, scrape_ops_api_key: 
         },
         timeout=120,
     )
-    return response.text
+    return {
+        "html": response.text,
+        "date": response.headers.get('date'), # Sat, 13 Jan 2024 08:17:01 GMT
+    }
 
-def store_html_as_file(html: str, file_name: str):
+def store_text_as_file(html: str, file_name: str):
     with open(file_name, 'w') as file:
         file.write(html)
 
-def restore_html_from_file(file_name: str) -> str:
+def restore_text_from_file(file_name: str) -> str:
     try:
         with open(file_name, 'r') as file:
             return file.read()
