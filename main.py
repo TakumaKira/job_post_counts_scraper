@@ -1,9 +1,10 @@
 import sys
 import os
-import re
 from typing import List, TypedDict
 import requests
-from bs4 import BeautifulSoup
+
+from job_search_page_analyzers import JobSearchPageAnalyzer, create_analyzer
+from exceptions import FileException
 
 
 SCRAPE_OPS_ENDPOINT = os.environ['SCRAPE_OPS_ENDPOINT']
@@ -28,12 +29,6 @@ class ScrapeResult(TypedDict):
     count: int
     date: str
 
-class TitleException(Exception):
-    pass
-
-class FileException(Exception):
-    pass
-
 def main():
     should_request = sys.argv[1] == SHOULD_REQUEST_FLAG_STR if len(sys.argv) > 1 else False
     should_request_with_store = sys.argv[1] == SHOULD_REQUEST_WITH_STORE_FLAG_STR if len(sys.argv) > 1 else False
@@ -43,14 +38,14 @@ def main():
 
     for target in targets:
         try:
+            analyzer = create_analyzer(target['url'], target['job_title'], target['job_location'])
             result = scrape(
                 should_request=should_request,
                 should_request_with_store=should_request_with_store,
                 scrape_ops_endpoint=SCRAPE_OPS_ENDPOINT,
                 scrape_ops_api_key=SCRAPE_OPS_API_KEY,
                 target_url=target['url'],
-                target_job_title=target['job_title'],
-                target_job_location=target['job_location'],
+                analyzer=analyzer,
                 store_file_name_html=STORE_FILE_NAME_HTML,
                 store_file_name_date=STORE_FILE_NAME_DATE,
             )
@@ -78,8 +73,7 @@ def scrape(
         scrape_ops_endpoint: str,
         scrape_ops_api_key: str,
         target_url: str,
-        target_job_title: str,
-        target_job_location: str,
+        analyzer: JobSearchPageAnalyzer,
         store_file_name_html: str,
         store_file_name_date: str,
     ) -> ScrapeResult:
@@ -96,11 +90,11 @@ def scrape(
         html = restore_text_from_file(store_file_name_html)
         date = restore_text_from_file(store_file_name_date)
 
-    title = get_page_title(html)
+    analyzer.verify(html)
 
-    verify_title(title, target_job_title, target_job_location)
+    count = analyzer.find_count(html)
 
-    return {"count": extract_number_from_title(title), "date": date}
+    return {"count": count, "date": date}
 
 def proxy_scrape(target_url: str, scrape_ops_endpoint: str, scrape_ops_api_key: str) -> str:
     response = requests.get(
@@ -126,33 +120,6 @@ def restore_text_from_file(file_name: str) -> str:
             return file.read()
     except FileNotFoundError:
         raise FileException(f"Stored file does not exist. Please run this function with {SHOULD_REQUEST_WITH_STORE_FLAG_STR} to create it.")
-
-def get_page_title(html: str) -> str:
-    soup = BeautifulSoup(html, 'html.parser')
-    return soup.title.string
-
-def verify_title(title: str, job_title: str, job_location: str):
-    """
-    Expects input strings like "3,051 react Jobs in Germany, January 2024 | Glassdoor"
-    """
-    if job_title.lower() not in title.lower() and job_location.lower() not in title.lower():
-        raise TitleException(f"Title '{title}' does not include both job title '{job_title}' and job location '{job_location}'.")
-    elif job_title.lower() not in title.lower():
-        raise TitleException(f"Title '{title}' does not include job title '{job_title}'.")
-    elif job_location.lower() not in title.lower():
-        raise TitleException(f"Title '{title}' does not include job location '{job_location}'.")
-    else:
-        pass
-
-def extract_number_from_title(title: str) -> int:
-    """
-    Expects input strings like "3,051 react Jobs in Germany, January 2024 | Glassdoor"
-    """
-    match = re.search(r'(\d+(,\d+)*)\s*.*jobs', title, re.IGNORECASE)
-    if match:
-        return int(match.group(1).replace(',', ''))
-    else:
-        raise TitleException(f"Title '{title}' does not include job counts.")
 
 def store(results: List[Result]):
     print(f"TODO: Store results in database.\n{results}")
