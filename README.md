@@ -3,9 +3,6 @@ To run this app, you need to provide some environment variables like following:
 ```bash
 SCRAPE_OPS_ENDPOINT=https://proxy.scrapeops.io/v1/ \
 SCRAPE_OPS_API_KEY=your-scrape-ops-api-key \
-TARGET_URL=https://www.glassdoor.com/Job/germany-react-jobs-SRCH_IL.0,7_IN96_KO8,13.htm \
-TARGET_JOB_TITLE=react \
-TARGET_JOB_LOCATION=Germany \
 poetry run python main.py should_request
 ```
 

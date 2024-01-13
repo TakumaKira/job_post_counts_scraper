@@ -1,6 +1,7 @@
 import sys
 import os
 import re
+from typing import List, TypedDict
 import requests
 from bs4 import BeautifulSoup
 
@@ -8,15 +9,19 @@ from bs4 import BeautifulSoup
 SCRAPE_OPS_ENDPOINT = os.environ['SCRAPE_OPS_ENDPOINT']
 SCRAPE_OPS_API_KEY = os.environ['SCRAPE_OPS_API_KEY']
 
-TARGET_URL = os.environ['TARGET_URL']
-TARGET_JOB_TITLE = os.environ['TARGET_JOB_TITLE']
-TARGET_JOB_LOCATION = os.environ['TARGET_JOB_LOCATION']
-
 SHOULD_REQUEST_FLAG_STR = 'should_request'
 SHOULD_REQUEST_WITH_STORE_FLAG_STR = 'should_request_with_store'
 
 STORE_FILE_NAME = 'content.txt'
 
+
+class Target(TypedDict):
+    target_url: str
+    job_title: str
+    job_location: str
+
+class Result(Target):
+    count: int
 
 class TitleException(Exception):
     pass
@@ -28,22 +33,61 @@ def main():
     should_request = sys.argv[1] == SHOULD_REQUEST_FLAG_STR if len(sys.argv) > 1 else False
     should_request_with_store = sys.argv[1] == SHOULD_REQUEST_WITH_STORE_FLAG_STR if len(sys.argv) > 1 else False
 
+    targets: List[Target] = get_targets()
+    results: List[Result] = []
+
+    for target in targets:
+        try:
+            count = scrape(
+                should_request=should_request,
+                should_request_with_store=should_request_with_store,
+                scrape_ops_endpoint=SCRAPE_OPS_ENDPOINT,
+                scrape_ops_api_key=SCRAPE_OPS_API_KEY,
+                target_url=target['url'],
+                target_job_title=target['job_title'],
+                target_job_location=target['job_location'],
+                store_file_name=STORE_FILE_NAME,
+            )
+            results.append({"target_url": target['url'], "job_title": target['job_title'], "job_location": target['job_location'], "count": count})
+        except Exception as e:
+            print(f"Error while scraping target '{target['url']}': {str(e)}")
+    store(results)
+
+def get_targets() -> List[Target]:
+    targets = [
+        {
+            "url": 'https://www.glassdoor.com/Job/germany-react-jobs-SRCH_IL.0,7_IN96_KO8,13.htm',
+            "job_title": 'react',
+            "job_location": 'Germany',
+        },
+    ]
+    print(f"TODO: Get targets from database.\n{targets}")
+    return targets
+
+def scrape(
+        should_request: bool,
+        should_request_with_store: bool,
+        scrape_ops_endpoint: str,
+        scrape_ops_api_key: str,
+        target_url: str,
+        target_job_title: str,
+        target_job_location: str,
+        store_file_name: str,
+    ):
     if should_request or should_request_with_store:
-        html = proxy_scrape(TARGET_URL, SCRAPE_OPS_ENDPOINT, SCRAPE_OPS_API_KEY)
+        html = proxy_scrape(target_url, scrape_ops_endpoint, scrape_ops_api_key)
 
     if should_request_with_store:
-        store_html_as_file(html, STORE_FILE_NAME)
+        store_html_as_file(html, store_file_name)
 
     if not should_request and not should_request_with_store:
-        html = restore_html_from_file(STORE_FILE_NAME)
+        html = restore_html_from_file(store_file_name)
 
     title = get_page_title(html)
 
-    verify_title(title, TARGET_JOB_TITLE, TARGET_JOB_LOCATION)
+    verify_title(title, target_job_title, target_job_location)
 
-    result = extract_number_from_title(title)
-
-    store(TARGET_URL, TARGET_JOB_TITLE, TARGET_JOB_LOCATION, result)
+    return extract_number_from_title(title)
 
 def proxy_scrape(target_url: str, scrape_ops_endpoint: str, scrape_ops_api_key: str) -> str:
     response = requests.get(
@@ -94,8 +138,8 @@ def extract_number_from_title(title: str) -> int:
     else:
         raise TitleException(f"Title '{title}' does not include job counts.")
 
-def store(target_url: str, target_job_title: str, target_job_location: str, result: int):
-    print(f"TODO: Store result '{result}' with TARGET_URL '{target_url}', TARGET_JOB_TITLE '{target_job_title}', TARGET_JOB_LOCATION '{target_job_location}' in database.")
+def store(results: List[Result]):
+    print(f"TODO: Store results in database.\n{results}")
 
 
 if __name__ == '__main__':
