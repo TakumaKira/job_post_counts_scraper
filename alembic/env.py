@@ -16,14 +16,26 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-target_metadata = None
+from db import models
+target_metadata = models.Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+from db import DB_URL
+
+# associate it with the alembic context
+from sqlalchemy import create_engine
+context.configure(
+    connection=create_engine(DB_URL).connect(),
+    target_metadata=target_metadata,
+    render_as_batch=True  # render (multiple) SQL statements as one batch (necessary for SQLite)
+)
+
+# override the sqlalchemy.url value in the alembic config with the value from the environment variable
+config.set_main_option('sqlalchemy.url', DB_URL)
 
 
 def run_migrations_offline() -> None:
