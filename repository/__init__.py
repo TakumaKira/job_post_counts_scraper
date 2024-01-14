@@ -1,5 +1,7 @@
 from typing import List
+from sqlalchemy.orm import Session
 from .models import Target, Result
+from db import engine
 
 def get_targets() -> List[Target]:
     raw_targets = [
@@ -10,6 +12,8 @@ def get_targets() -> List[Target]:
         },
     ]
     print(f"TODO: Get targets from database.\n{raw_targets}")
+    with Session(engine) as session:
+        print(session)
     targets = raw_targets # TODO: Convert raw_targets to targets
     return targets
 

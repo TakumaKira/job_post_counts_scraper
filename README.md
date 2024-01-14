@@ -1,6 +1,7 @@
 To run this app, you need to provide some environment variables like following:
 
 ```bash
+ENV=production \
 SCRAPE_OPS_ENDPOINT=https://proxy.scrapeops.io/v1/ \
 SCRAPE_OPS_API_KEY=your-scrape-ops-api-key \
 poetry run python main.py should_request
