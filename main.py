@@ -5,6 +5,8 @@ import requests
 
 from job_search_page_analyzers import JobSearchPageAnalyzer, create_analyzer
 from exceptions import FileException
+from repository.models import Target, Result
+from repository import get_targets, store_results
 
 
 SCRAPE_OPS_ENDPOINT = os.environ['SCRAPE_OPS_ENDPOINT']
@@ -16,14 +18,6 @@ SHOULD_REQUEST_WITH_STORE_FLAG_STR = 'should_request_with_store'
 STORE_FILE_NAME_HTML = 'content.txt'
 STORE_FILE_NAME_DATE = 'date.txt'
 
-
-class Target(TypedDict):
-    target_url: str
-    job_title: str
-    job_location: str
-
-class Result(Target):
-    count: int
 
 class ScrapeResult(TypedDict):
     count: int
@@ -54,18 +48,7 @@ def main():
             results.append({"target_url": target['url'], "job_title": target['job_title'], "job_location": target['job_location'], "count": count, "date": date})
         except Exception as e:
             print(f"Error while scraping target '{target['url']}': {str(e)}")
-    store(results)
-
-def get_targets() -> List[Target]:
-    targets = [
-        {
-            "url": 'https://www.glassdoor.com/Job/germany-react-jobs-SRCH_IL.0,7_IN96_KO8,13.htm',
-            "job_title": 'react',
-            "job_location": 'Germany',
-        },
-    ]
-    print(f"TODO: Get targets from database.\n{targets}")
-    return targets
+    store_results(results)
 
 def scrape(
         should_request: bool,
@@ -120,9 +103,6 @@ def restore_text_from_file(file_name: str) -> str:
             return file.read()
     except FileNotFoundError:
         raise FileException(f"Stored file does not exist. Please run this function with {SHOULD_REQUEST_WITH_STORE_FLAG_STR} to create it.")
-
-def store(results: List[Result]):
-    print(f"TODO: Store results in database.\n{results}")
 
 
 if __name__ == '__main__':
