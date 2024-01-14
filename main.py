@@ -45,7 +45,7 @@ def main():
             )
             count = result['count']
             date = result['date']
-            results.append({"target_url": target['url'], "job_title": target['job_title'], "job_location": target['job_location'], "count": count, "date": date})
+            results.append({"url": target['url'], "job_title": target['job_title'], "job_location": target['job_location'], "count": count, "date": date})
         except Exception as e:
             print(f"Error while scraping target '{target['url']}': {str(e)}")
     store_results(results)

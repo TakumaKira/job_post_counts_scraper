@@ -1,20 +1,20 @@
 from typing import List
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 from .models import Target, Result
 from db import engine
+from db.models import Target as TargetDB
 
 def get_targets() -> List[Target]:
-    raw_targets = [
-        {
-            "url": 'https://www.glassdoor.com/Job/germany-react-jobs-SRCH_IL.0,7_IN96_KO8,13.htm',
-            "job_title": 'react',
-            "job_location": 'Germany',
-        },
-    ]
-    print(f"TODO: Get targets from database.\n{raw_targets}")
+    targets: List[Target] = []
     with Session(engine) as session:
-        print(session)
-    targets = raw_targets # TODO: Convert raw_targets to targets
+        raw_targets = session.scalars(select(TargetDB))
+        for raw_target in raw_targets:
+          targets.append({
+              "url": raw_target.url,
+              "job_title": raw_target.job_title,
+              "job_location": raw_target.job_location,
+          })
     return targets
 
 def store_results(results: List[Result]):

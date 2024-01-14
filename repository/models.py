@@ -1,7 +1,7 @@
 from typing import TypedDict
 
 class Target(TypedDict):
-    target_url: str
+    url: str
     job_title: str
     job_location: str
 
