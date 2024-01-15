@@ -33,7 +33,14 @@ poetry run alembic upgrade head
 
 (Omit lines from `ENV=production` to `DB_NAME=...` when migrating `/dev.db`)
 
-You can directly work with `dev.db` with the following command:
+You can create `dev.db` with the following command:
+
+```bash
+sqlite3
+sqlite> .save dev.db
+```
+
+Then, you can directly work with the existing `dev.db` with the following command:
 
 ```bash
 sqlite3 dev.db

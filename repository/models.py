@@ -1,4 +1,5 @@
 from typing import TypedDict
+import datetime
 
 class Target(TypedDict):
     url: str
@@ -7,4 +8,4 @@ class Target(TypedDict):
 
 class Result(Target):
     count: int
-    date: str
+    scrape_date: datetime

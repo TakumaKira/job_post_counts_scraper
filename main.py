@@ -1,6 +1,8 @@
 import sys
 import os
 from typing import List, TypedDict
+from datetime import datetime
+
 import requests
 
 from job_search_page_analyzers import JobSearchPageAnalyzer, create_analyzer
@@ -21,6 +23,10 @@ STORE_FILE_NAME_DATE = 'date.txt'
 
 class ScrapeResult(TypedDict):
     count: int
+    scrape_date: datetime
+
+class ProxyScrapeResult(TypedDict):
+    html: str
     date: str
 
 def main():
@@ -44,8 +50,8 @@ def main():
                 store_file_name_date=STORE_FILE_NAME_DATE,
             )
             count = result['count']
-            date = result['date']
-            results.append({"url": target['url'], "job_title": target['job_title'], "job_location": target['job_location'], "count": count, "date": date})
+            scrape_date = result['scrape_date']
+            results.append({"url": target['url'], "job_title": target['job_title'], "job_location": target['job_location'], "count": count, "scrape_date": scrape_date})
         except Exception as e:
             print(f"Error while scraping target '{target['url']}': {str(e)}")
     store_results(results)
@@ -77,9 +83,9 @@ def scrape(
 
     count = analyzer.find_count(html)
 
-    return {"count": count, "date": date}
+    return {"count": count, "scrape_date": datetime.strptime(date, "%a, %d %b %Y %H:%M:%S %Z")}
 
-def proxy_scrape(target_url: str, scrape_ops_endpoint: str, scrape_ops_api_key: str) -> str:
+def proxy_scrape(target_url: str, scrape_ops_endpoint: str, scrape_ops_api_key: str) -> ProxyScrapeResult:
     response = requests.get(
         url=scrape_ops_endpoint,
         params={

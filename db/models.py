@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy import DateTime
 from sqlalchemy import String
 from sqlalchemy import Integer
@@ -23,7 +24,7 @@ class Result(Base):
     url: Mapped[str] = mapped_column(String)
     job_title: Mapped[str] = mapped_column(String)
     job_location: Mapped[str] = mapped_column(String)
-    scrape_date: Mapped[str] = mapped_column(DateTime)
+    scrape_date: Mapped[datetime] = mapped_column(DateTime)
     count: Mapped[int] = mapped_column(Integer)
     def __repr__(self) -> str:
         return f"Result(id={self.id!r}, url={self.url!r}, job_title={self.job_title!r}, job_location={self.job_location!r}, scrape_date={self.scrape_date!r}, count={self.count!r})"

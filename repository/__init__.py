@@ -1,9 +1,10 @@
 from typing import List
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from .models import Target, Result
 from db import engine
-from db.models import Target as TargetDB
+from db.models import Result as ResultDB, Target as TargetDB
+from .models import Target, Result
+
 
 def get_targets() -> List[Target]:
     targets: List[Target] = []
@@ -18,5 +19,15 @@ def get_targets() -> List[Target]:
     return targets
 
 def store_results(results: List[Result]):
-    results_for_db = results # TODO: Convert results to results_for_db
-    print(f"TODO: Store results in database.\n{results_for_db}")
+    results_for_db: List[ResultDB] = []
+    for result in results:
+        results_for_db.append(ResultDB(
+            url=result["url"],
+            job_title=result["job_title"],
+            job_location=result["job_location"],
+            scrape_date=result["scrape_date"],
+            count=result["count"],
+        ))
+    with Session(engine) as session:
+        session.add_all(results_for_db)
+        session.commit()
