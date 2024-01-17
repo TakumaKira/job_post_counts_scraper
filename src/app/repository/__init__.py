@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 from db import engine
 from db.models import Result as ResultDB, Target as TargetDB
-from .models import Target, Result
+from repository.models import Target, Result
 
 
 def get_targets() -> List[Target]:
