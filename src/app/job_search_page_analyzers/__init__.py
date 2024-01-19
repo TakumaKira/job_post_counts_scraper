@@ -14,7 +14,7 @@ class JobSearchPageAnalyzer(ABC):
 def create_analyzer(target_url: str, target_job_title: str, target_job_location: str) -> JobSearchPageAnalyzer:
     is_glassdoor = re.match(r"^https://www\.glassdoor\.com/Job/", target_url)
     if is_glassdoor:
-        from .glassdoor import GlassdoorJobSearchPageAnalyzer
+        from src.app.job_search_page_analyzers.glassdoor import GlassdoorJobSearchPageAnalyzer
         return GlassdoorJobSearchPageAnalyzer(target_job_title, target_job_location)
     else:
         raise Exception(f"Unsupported target URL: {target_url}")

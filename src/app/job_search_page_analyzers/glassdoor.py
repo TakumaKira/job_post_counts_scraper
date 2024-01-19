@@ -2,8 +2,8 @@ import re
 
 from bs4 import BeautifulSoup
 
-from exceptions import TitleException
-from job_search_page_analyzers import JobSearchPageAnalyzer
+from src.app.exceptions import TitleException
+from src.app.job_search_page_analyzers import JobSearchPageAnalyzer
 
 
 class GlassdoorJobSearchPageAnalyzer(JobSearchPageAnalyzer):
