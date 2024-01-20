@@ -3,6 +3,7 @@ from unittest.mock import patch
 from src.app.job_search_page_analyzers import create_analyzer
 from src.app.job_search_page_analyzers.glassdoor import GlassdoorJobSearchPageAnalyzer
 
+
 def test_create_analyzer_returns_glassdoor_analyzer_when_target_url_is_glassdoor():
     target_url = 'https://www.glassdoor.com/Job/ocation-title-jobs-UNKNOWN_STRINGS.htm'
     target_job_title = 'title'
@@ -13,3 +14,15 @@ def test_create_analyzer_returns_glassdoor_analyzer_when_target_url_is_glassdoor
 
     assert isinstance(analyzer, GlassdoorJobSearchPageAnalyzer)
     mock_init.assert_called_once_with(target_job_title, target_job_location)
+
+def test_create_analyzer_throws_when_target_url_is_unknown():
+    target_url = 'https://www.unknown.com/Job/ocation-title-jobs-UNKNOWN_STRINGS.htm'
+    target_job_title = 'title'
+    target_job_location = 'location'
+
+    try:
+        create_analyzer(target_url, target_job_title, target_job_location)
+    except Exception as e:
+        assert str(e) == f"Unsupported target URL: {target_url}"
+    else:
+        assert False
