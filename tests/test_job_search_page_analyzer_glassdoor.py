@@ -1,4 +1,6 @@
-from src.app.job_search_page_analyzers.glassdoor import GlassdoorJobSearchPageAnalyzer
+from unittest.mock import patch
+
+from job_search_page_analyzers.glassdoor import GlassdoorJobSearchPageAnalyzer
 
 
 class TestGlassdoorJobSearchPageAnalyzerVerify:

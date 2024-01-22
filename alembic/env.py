@@ -24,18 +24,19 @@ target_metadata = models.Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-from app.db import DB_URL
+from app.db import get_db_url
+db_url = get_db_url()
 
 # associate it with the alembic context
 from sqlalchemy import create_engine
 context.configure(
-    connection=create_engine(DB_URL).connect(),
+    connection=create_engine(db_url).connect(),
     target_metadata=target_metadata,
     render_as_batch=True  # render (multiple) SQL statements as one batch (necessary for SQLite)
 )
 
 # override the sqlalchemy.url value in the alembic config with the value from the environment variable
-config.set_main_option('sqlalchemy.url', DB_URL)
+config.set_main_option('sqlalchemy.url', db_url)
 
 
 def run_migrations_offline() -> None:

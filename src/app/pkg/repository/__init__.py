@@ -1,14 +1,14 @@
 from typing import List
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from db import engine
+from db import get_engine
 from db.models import Result as ResultDB, Target as TargetDB
 from repository.models import Target, Result
 
 
 def get_targets() -> List[Target]:
     targets: List[Target] = []
-    with Session(engine) as session:
+    with Session(get_engine()) as session:
         raw_targets = session.scalars(select(TargetDB))
         for raw_target in raw_targets:
           targets.append({
@@ -28,6 +28,6 @@ def store_results(results: List[Result]):
             scrape_date=result["scrape_date"],
             count=result["count"],
         ))
-    with Session(engine) as session:
+    with Session(get_engine()) as session:
         session.add_all(results_for_db)
         session.commit()

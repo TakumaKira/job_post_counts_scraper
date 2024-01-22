@@ -1,6 +1,6 @@
 import datetime
 
-import src.app.utils as utils
+import utils
 
 
 def test_header_date_to_datetime():

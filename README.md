@@ -4,7 +4,7 @@ To run this app, you need to provide some environment variables like following:
 ENV=production \
 SCRAPE_OPS_ENDPOINT=https://proxy.scrapeops.io/v1/ \
 SCRAPE_OPS_API_KEY=your-scrape-ops-api-key \
-poetry run python src/app should_request
+poetry run python src/app.main.py should_request
 ```
 
 Notice `should_request` arg. This makes this function send a request to [ScrapeOps](https://scrapeops.io/).
@@ -47,8 +47,10 @@ sqlite3 dev.db
 sqlite>
 ```
 
+*You need to [migrate](#) before running this app.*
+
 To run test, run:
 
 ```bash
-poetry run pytest
+poetry run python -m pytest -s
 ```

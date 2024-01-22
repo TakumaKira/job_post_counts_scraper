@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
-from src.app.job_search_page_analyzers import create_analyzer
-from src.app.job_search_page_analyzers.glassdoor import GlassdoorJobSearchPageAnalyzer
+from job_search_page_analyzers import create_analyzer
+from job_search_page_analyzers.glassdoor import GlassdoorJobSearchPageAnalyzer
 
 
 class TestCreateAnalyzer:
