@@ -2,7 +2,7 @@ from unittest.mock import patch, MagicMock
 import sqlalchemy.orm
 from repository import get_targets, store_results
 import db
-from repository.models import Target
+from repository.models import Target, Result
 from db.models import Result as ResultDB
 
 
@@ -68,3 +68,17 @@ class TestRepository:
                 if prop == '_sa_instance_state':
                     continue
                 assert getattr(calls[0][0][0][result_index], prop) == getattr(mock_results_to_store[result_index], prop)
+
+    def test_Target_model_has_correct_attributes(self):
+        target = Target(url='url', job_title='job_title', job_location='job_location')
+        assert target.url == 'url'
+        assert target.job_title == 'job_title'
+        assert target.job_location == 'job_location'
+
+    def test_Result_model_has_correct_attributes(self):
+        result = Result(url='url', job_title='job_title', job_location='job_location', count=1, scrape_date='scrape_date')
+        assert result.url == 'url'
+        assert result.job_title == 'job_title'
+        assert result.job_location == 'job_location'
+        assert result.count == 1
+        assert result.scrape_date == 'scrape_date'
