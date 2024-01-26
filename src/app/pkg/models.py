@@ -1,11 +1,13 @@
-from typing import TypedDict
 from datetime import datetime
+from dataclasses import dataclass
 
 
-class ScrapeResult(TypedDict):
+@dataclass
+class ScrapeResult:
     count: int
     scrape_date: datetime
 
-class ProxyScrapeResult(TypedDict):
+@dataclass
+class ProxyScrapeResult:
     html: str
     header_date: str

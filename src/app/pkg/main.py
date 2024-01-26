@@ -25,22 +25,22 @@ def main():
 
     for target in targets:
         try:
-            analyzer = create_analyzer(target['url'], target['job_title'], target['job_location'])
+            analyzer = create_analyzer(target.url, target.job_title, target.job_location)
             result = scrape(
                 should_request=should_request,
                 should_request_with_store=should_request_with_store,
                 scrape_ops_endpoint=SCRAPE_OPS_ENDPOINT,
                 scrape_ops_api_key=SCRAPE_OPS_API_KEY,
-                target_url=target['url'],
+                target_url=target.url,
                 analyzer=analyzer,
                 store_file_name_html=STORE_FILE_NAME_HTML,
                 store_file_name_header_date=STORE_FILE_NAME_HEADER_DATE,
             )
-            count = result['count']
-            scrape_date = result['scrape_date']
-            results.append({"url": target['url'], "job_title": target['job_title'], "job_location": target['job_location'], "count": count, "scrape_date": scrape_date})
+            count = result.count
+            scrape_date = result.scrape_date
+            results.append(Result(url=target.url, job_title=target.job_title, job_location=target.job_location, count=count, scrape_date=scrape_date))
         except Exception as e:
-            print(f"Error while scraping target '{target['url']}': {str(e)}")
+            print(f"Error while scraping target '{target.url}': {str(e)}")
     store_results(results)
 
 def scrape(
@@ -55,8 +55,8 @@ def scrape(
     ) -> ScrapeResult:
     if should_request or should_request_with_store:
         result = proxy_scrape(target_url, scrape_ops_endpoint, scrape_ops_api_key)
-        html = result['html']
-        header_date = result['header_date']
+        html = result.html
+        header_date = result.header_date
 
     if should_request_with_store:
         store_text_as_file(html, store_file_name_html)
@@ -70,7 +70,7 @@ def scrape(
 
     count = analyzer.find_count(html)
 
-    return {"count": count, "scrape_date": header_date_to_datetime(header_date)}
+    return ScrapeResult(count=count, scrape_date=header_date_to_datetime(header_date))
 
 
 if __name__ == '__main__':

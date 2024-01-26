@@ -11,7 +11,7 @@ def proxy_scrape(target_url: str, scrape_ops_endpoint: str, scrape_ops_api_key: 
         },
         timeout=120,
     )
-    return {
-        "html": response.text,
-        "header_date": response.headers.get('date'), # Sat, 13 Jan 2024 08:17:01 GMT
-    }
+    return ProxyScrapeResult(
+        html=response.text,
+        header_date=response.headers.get('date'), # Sat, 13 Jan 2024 08:17:01 GMT
+    )

@@ -54,3 +54,5 @@ To run test, run:
 ```bash
 poetry run python -m pytest -s
 ```
+
+*You can omit `-s` if you don't need prints.*
