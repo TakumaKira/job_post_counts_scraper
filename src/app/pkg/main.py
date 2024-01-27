@@ -2,9 +2,10 @@ import sys
 import os
 from typing import List
 
-from job_search_page_analyzers import JobSearchPageAnalyzer, create_analyzer
+from job_search_page_analyzers import JobSearchPageAnalyzer
+import job_search_page_analyzers
 from repository.models import Target, Result
-from repository import get_targets, store_results
+import repository
 import file_io
 from const import SHOULD_REQUEST_FLAG_STR, SHOULD_REQUEST_WITH_STORE_FLAG_STR, STORE_FILE_NAME_HTML, STORE_FILE_NAME_HEADER_DATE
 from models import ScrapeResult, ScrapeRawResult
@@ -13,18 +14,21 @@ import utils
 
 
 def main():
+    print('Starting scraping...')
     SCRAPE_OPS_ENDPOINT = os.environ['SCRAPE_OPS_ENDPOINT']
     SCRAPE_OPS_API_KEY = os.environ['SCRAPE_OPS_API_KEY']
 
     should_request = sys.argv[1] == SHOULD_REQUEST_FLAG_STR if len(sys.argv) > 1 else False
     should_request_with_store = sys.argv[1] == SHOULD_REQUEST_WITH_STORE_FLAG_STR if len(sys.argv) > 1 else False
 
-    targets: List[Target] = get_targets()
+    targets: List[Target] = repository.get_targets()
+    print('Got targets...')
     results: List[Result] = []
 
-    for target in targets:
+    for i, target in enumerate(targets):
+        print(f"Scraping target {i+1}/{len(targets)}: '{target.url}'...")
         try:
-            analyzer = create_analyzer(target.url, target.job_title, target.job_location)
+            analyzer = job_search_page_analyzers.create_analyzer(target.url, target.job_title, target.job_location)
             result = scrape(
                 should_request=should_request,
                 should_request_with_store=should_request_with_store,
@@ -40,7 +44,10 @@ def main():
             results.append(Result(url=target.url, job_title=target.job_title, job_location=target.job_location, count=count, scrape_date=scrape_date))
         except Exception as e:
             print(f"Error while scraping target '{target.url}': {str(e)}")
-    store_results(results)
+
+    print('Storing results...')
+    repository.store_results(results)
+    print('Scraping finished.')
 
 def scrape(
         scrape_ops_endpoint: str,

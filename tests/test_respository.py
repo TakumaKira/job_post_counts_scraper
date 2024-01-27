@@ -56,6 +56,7 @@ class TestRepository:
         self.patch_select.stop()
         self.patch_get_engine.stop()
 
+
     def test_get_targets_returns_targets(self):
         targets = get_targets()
         assert targets == mock_targets_to_get
