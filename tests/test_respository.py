@@ -69,13 +69,13 @@ class TestRepository:
                     continue
                 assert getattr(calls[0][0][0][result_index], prop) == getattr(mock_results_to_store[result_index], prop)
 
-    def test_Target_model_has_correct_attributes(self):
+    def test_Target_instance_has_correct_attributes(self):
         target = Target(url='url', job_title='job_title', job_location='job_location')
         assert target.url == 'url'
         assert target.job_title == 'job_title'
         assert target.job_location == 'job_location'
 
-    def test_Result_model_has_correct_attributes(self):
+    def test_Result_instance_has_correct_attributes(self):
         result = Result(url='url', job_title='job_title', job_location='job_location', count=1, scrape_date='scrape_date')
         assert result.url == 'url'
         assert result.job_title == 'job_title'

@@ -5,18 +5,17 @@ from typing import List
 from job_search_page_analyzers import JobSearchPageAnalyzer, create_analyzer
 from repository.models import Target, Result
 from repository import get_targets, store_results
-from file_io import store_text_as_file, restore_text_from_file
+import file_io
 from const import SHOULD_REQUEST_FLAG_STR, SHOULD_REQUEST_WITH_STORE_FLAG_STR, STORE_FILE_NAME_HTML, STORE_FILE_NAME_HEADER_DATE
-from models import ScrapeResult
-from scraper import proxy_scrape
-from utils import header_date_to_datetime
-
-
-SCRAPE_OPS_ENDPOINT = os.environ['SCRAPE_OPS_ENDPOINT']
-SCRAPE_OPS_API_KEY = os.environ['SCRAPE_OPS_API_KEY']
+from models import ScrapeResult, ScrapeRawResult
+import scraper
+import utils
 
 
 def main():
+    SCRAPE_OPS_ENDPOINT = os.environ['SCRAPE_OPS_ENDPOINT']
+    SCRAPE_OPS_API_KEY = os.environ['SCRAPE_OPS_API_KEY']
+
     should_request = sys.argv[1] == SHOULD_REQUEST_FLAG_STR if len(sys.argv) > 1 else False
     should_request_with_store = sys.argv[1] == SHOULD_REQUEST_WITH_STORE_FLAG_STR if len(sys.argv) > 1 else False
 
@@ -44,33 +43,56 @@ def main():
     store_results(results)
 
 def scrape(
-        should_request: bool,
-        should_request_with_store: bool,
         scrape_ops_endpoint: str,
         scrape_ops_api_key: str,
         target_url: str,
         analyzer: JobSearchPageAnalyzer,
         store_file_name_html: str,
         store_file_name_header_date: str,
+        should_request: bool = False,
+        should_request_with_store: bool = False,
     ) -> ScrapeResult:
+    raw_result = get_raw_result(
+        scrape_ops_endpoint=scrape_ops_endpoint,
+        scrape_ops_api_key=scrape_ops_api_key,
+        target_url=target_url,
+        store_file_name_html=store_file_name_html,
+        store_file_name_header_date=store_file_name_header_date,
+        should_request=should_request,
+        should_request_with_store=should_request_with_store,
+    )
+    html = raw_result.html
+    header_date = raw_result.header_date
+    analyzer.verify(html)
+    count = analyzer.find_count(html)
+    return ScrapeResult(count=count, scrape_date=utils.header_date_to_datetime(header_date))
+
+def get_raw_result(
+        scrape_ops_endpoint: str,
+        scrape_ops_api_key: str,
+        target_url: str,
+        store_file_name_html: str,
+        store_file_name_header_date: str,
+        should_request: bool = False,
+        should_request_with_store: bool = False
+    ) -> ScrapeRawResult:
+    """
+    If both `should_request` and `should_request_with_store` are `True`, then it has the same effect with when only `should_request_with_store` is True.
+    """
     if should_request or should_request_with_store:
-        result = proxy_scrape(target_url, scrape_ops_endpoint, scrape_ops_api_key)
+        result = scraper.proxy_scrape(target_url, scrape_ops_endpoint, scrape_ops_api_key)
         html = result.html
         header_date = result.header_date
 
     if should_request_with_store:
-        store_text_as_file(html, store_file_name_html)
-        store_text_as_file(header_date, store_file_name_header_date)
+        file_io.store_text_as_file(html, store_file_name_html)
+        file_io.store_text_as_file(header_date, store_file_name_header_date)
 
     if not should_request and not should_request_with_store:
-        html = restore_text_from_file(store_file_name_html)
-        header_date = restore_text_from_file(store_file_name_header_date)
+        html = file_io.restore_text_from_file(store_file_name_html)
+        header_date = file_io.restore_text_from_file(store_file_name_header_date)
 
-    analyzer.verify(html)
-
-    count = analyzer.find_count(html)
-
-    return ScrapeResult(count=count, scrape_date=header_date_to_datetime(header_date))
+    return ScrapeRawResult(html=html, header_date=header_date)
 
 
 if __name__ == '__main__':
