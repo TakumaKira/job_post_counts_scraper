@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "job_post_counts_scraper"
+version = "0.1.0"
+description = ""
+authors = ["Takuma Kira <takuma@kirakiraworx.com>"]
+readme = "README.md"
+packages = [
+    { include = "app", from = "src" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+requests = "^2.31.0"
+beautifulsoup4 = "^4.12.2"
+sqlalchemy = "^2.0.25"
+
+[tool.poetry.group.dev.dependencies]
+alembic = "^1.13.1"
+pytest = "^7.4.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
+pythonpath = [
+  "src/app/pkg"
+]
