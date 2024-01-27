@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "web-scraper"
+name = "job_post_counts_scraper"
 version = "0.1.0"
 description = ""
 authors = ["Takuma Kira <takuma@kirakiraworx.com>"]
