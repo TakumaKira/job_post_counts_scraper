@@ -18,7 +18,6 @@ jobs:
       - run: cp -r .venv/lib/python*/site-packages/* dist/lambda-package/
       - run: cp -r src/app/pkg/* dist/lambda-package/
       - run: (cd dist/lambda-package && zip -r ../${{ env.TEMP_FILE_NAME }} .)
-      - run: ls dist
       - name: Upload the zip file
         uses: actions/upload-artifact@v4
         with:
@@ -34,9 +33,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: lambda-package
-      - run: ls
-      - run: unzip ${{ env.TEMP_FILE_NAME }}
-      - run: ls
       - name: Setup AWS CLI
         uses: aws-actions/configure-aws-credentials@v1
         with:

@@ -17,11 +17,9 @@ def get_secrets(secret_name: str, region_name: str):
     )
 
     try:
-        print('Getting secrets from AWS Secrets Manager...')
         get_secret_value_response = client.get_secret_value(
             SecretId=secret_name
         )
-        print('Got secrets from AWS Secrets Manager.')
     except ClientError as e:
         # For a list of exceptions thrown, see
         # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
