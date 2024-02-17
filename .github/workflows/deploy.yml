@@ -17,7 +17,7 @@ jobs:
       - run: poetry install --only main --sync
       - run: cp -r .venv/lib/python*/site-packages/* dist/lambda-package/
       - run: cp -r src/app/pkg/* dist/lambda-package/
-      - run: zip -r dist/${{ env.TEMP_FILE_NAME }} dist/lambda-package/*
+      - run: zip -r -j dist/${{ env.TEMP_FILE_NAME }} dist/lambda-package/*
       - name: Upload the zip file
         uses: actions/upload-artifact@v4
         with:
@@ -36,8 +36,6 @@ jobs:
       - run: ls
       - run: unzip ${{ env.TEMP_FILE_NAME }}
       - run: ls
-      - run: ls dist
-      - run: ls dist/lambda-package
       - name: Setup AWS CLI
         uses: aws-actions/configure-aws-credentials@v1
         with:
