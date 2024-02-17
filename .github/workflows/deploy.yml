@@ -21,14 +21,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lambda-package
-          path: dist/lambda.zip
+          path: ../lambda.zip
       - run: echo "🍏 This job's status is ${{ job.status }}."
   Update-Lambda:
     needs: Package-Zip
     runs-on: ubuntu-latest
     steps:
       - run: echo "Updating lambda..."
-      - name: Upload the zip file from Package-Zip
+      - name: Download the zip file from Package-Zip
         uses: actions/download-artifact@v4
         with:
           name: lambda-package
