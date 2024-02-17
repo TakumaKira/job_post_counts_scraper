@@ -40,5 +40,5 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
       - run: aws s3 cp ${{ env.TEMP_FILE_NAME }} s3://${{ vars.AWS_S3_BUCKET_NAME}}/${{ vars.AWS_S3_OBJECT_NAME }}
-      - run: aws lambda update-function-code --function-name ${{ vars.AWS_LAMBDA_FUNCTION_NAME }} --zip-file --s3-bucket ${{ vars.AWS_S3_BUCKET_NAME}} --s3-key ${{ vars.AWS_S3_OBJECT_NAME }}
+      - run: aws lambda update-function-code --function-name ${{ vars.AWS_LAMBDA_FUNCTION_NAME }} --s3-bucket ${{ vars.AWS_S3_BUCKET_NAME}} --s3-key ${{ vars.AWS_S3_OBJECT_NAME }}
       - run: echo "🍏 This job's status is ${{ job.status }}."
