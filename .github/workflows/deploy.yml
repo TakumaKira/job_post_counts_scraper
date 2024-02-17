@@ -1,0 +1,39 @@
+name: Deploy
+run-name: Deploy to lambda
+on: []
+jobs:
+  Package-Zip:
+    runs-on: ubuntu-latest # Packaging is needed to be executed on Linux to make psycopg2 work on Labmda environment. See https://stackoverflow.com/a/46366104
+    steps:
+      - run: echo "Packaging..."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - run: mkdir -p dist/lambda-package
+      - run: poetry install --only main --sync
+      - run: cp -r .venv/lib/python*/site-packages/* dist/lambda-package/
+      - run: cp -r src/app/pkg/* dist/lambda-package/
+      - run: cd dist/lambda-package
+      - run: zip -r ../lambda.zip .
+      - name: Upload the zip file
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambda-package
+          path: dist/lambda.zip
+      - run: echo "🍏 This job's status is ${{ job.status }}."
+  Update-Lambda:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Updating lambda..."
+      - name: Upload the zip file from Package-Zip
+        uses: actions/download-artifact@v4
+        with:
+          name: lambda-package
+      - name: Setup AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: $AWS_REGION
+      - run: aws s3 cp lambda.zip s3://$S3_BUCKET/$S3_KEY
+      - run: aws lambda update-function-code --function-name $AWS_LAMBDA_FUNCTION_NAME --zip-file --s3-bucket $S3_BUCKET --s3-key $S3_KEY
+      - run: echo "🍏 This job's status is ${{ job.status }}."

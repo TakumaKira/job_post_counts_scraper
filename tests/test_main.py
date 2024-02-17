@@ -13,6 +13,7 @@ import utils
 import repository
 from repository import Target, Result
 import job_search_page_analyzers
+import aws_secrets_manager_connector
 from main import get_raw_result, scrape, main
 
 
@@ -49,6 +50,9 @@ class TestMain:
         self.mock_store_results = MagicMock()
         self.patch_store_results = patch.object(repository, 'store_results', new_callable=lambda: self.mock_store_results)
         self.patch_store_results.start()
+        self.mock_get_secrets = MagicMock()
+        self.patch_get_secrets = patch.object(aws_secrets_manager_connector, 'get_secrets', new_callable=lambda: self.mock_get_secrets)
+        self.patch_get_secrets.start()
 
     def teardown_class(self):
         self.patch_proxy_scrape.stop()
@@ -58,6 +62,7 @@ class TestMain:
         self.patch_get_targets.stop()
         self.patch_create_analyzer.stop()
         self.patch_store_results.stop()
+        self.patch_get_secrets.stop()
 
 
     def test_ScrapeRawResult_instance_has_correct_attributes(self):
@@ -75,7 +80,7 @@ class TestMain:
         assert proxy_scrape_result.html == 'html'
         assert proxy_scrape_result.header_date == 'header_date'
 
-    def test_get_raw_result_calls_proxy_scrape_and_does_not_call_store_text_and_restore_text_from_file_when_passed_should_request_argument(self):
+    def test_get_raw_result_calls_proxy_scrape_and_does_not_call_store_text_and_restore_text_from_file_when_not_passed_no_request_argument(self):
         test_id = 1
         self.mock_proxy_scrape.return_value = ProxyScrapeResult(html=f'html{test_id}', header_date=f'header_date{test_id}')
         raw_result = get_raw_result(
@@ -84,7 +89,6 @@ class TestMain:
             target_url=f'target_url{test_id}',
             store_file_name_html=f'store_file_name_html{test_id}',
             store_file_name_header_date=f'store_file_name_header_date{test_id}',
-            should_request=True
         )
         self.mock_proxy_scrape.assert_any_call(f'target_url{test_id}', f'scrape_ops_endpoint{test_id}', f'scrape_ops_api_key{test_id}')
         self.mock_store_text_as_file.assert_not_called()
@@ -93,7 +97,7 @@ class TestMain:
         assert raw_result.html == f'html{test_id}'
         assert raw_result.header_date == f'header_date{test_id}'
 
-    def test_get_raw_result_calls_proxy_scrape_and_store_text_as_file_and_does_not_call_restore_text_from_file_when_passed_should_request_with_store_argument(self):
+    def test_get_raw_result_calls_proxy_scrape_and_store_text_as_file_and_does_not_call_restore_text_from_file_when_passed_store_results_argument(self):
         test_id = 2
         self.mock_proxy_scrape.return_value = ProxyScrapeResult(html=f'html{test_id}', header_date=f'header_date{test_id}')
         raw_result = get_raw_result(
@@ -102,7 +106,7 @@ class TestMain:
             target_url=f'target_url{test_id}',
             store_file_name_html=f'store_file_name_html{test_id}',
             store_file_name_header_date=f'store_file_name_header_date{test_id}',
-            should_request_with_store=True
+            store_results=True
         )
         self.mock_proxy_scrape.assert_any_call(f'target_url{test_id}', f'scrape_ops_endpoint{test_id}', f'scrape_ops_api_key{test_id}')
         self.mock_store_text_as_file.assert_any_call(f'html{test_id}', f'store_file_name_html{test_id}')
@@ -112,7 +116,7 @@ class TestMain:
         assert raw_result.html == f'html{test_id}'
         assert raw_result.header_date == f'header_date{test_id}'
 
-    def test_get_raw_result_calls_proxy_scrape_and_store_text_as_file_and_does_not_call_restore_text_from_file_when_passed_should_request_and_should_request_with_store_argument(self):
+    def test_get_raw_result_calls_proxy_scrape_and_store_text_as_file_and_does_not_call_restore_text_from_file_when_not_passed_no_request_and_store_results_argument(self):
         test_id = 3
         self.mock_proxy_scrape.return_value = ProxyScrapeResult(html=f'html{test_id}', header_date=f'header_date{test_id}')
         raw_result = get_raw_result(
@@ -121,8 +125,7 @@ class TestMain:
             target_url=f'target_url{test_id}',
             store_file_name_html=f'store_file_name_html{test_id}',
             store_file_name_header_date=f'store_file_name_header_date{test_id}',
-            should_request=True,
-            should_request_with_store=True
+            store_results=True
         )
         self.mock_proxy_scrape.assert_any_call(f'target_url{test_id}', f'scrape_ops_endpoint{test_id}', f'scrape_ops_api_key{test_id}')
         self.mock_store_text_as_file.assert_any_call(f'html{test_id}', f'store_file_name_html{test_id}')
@@ -132,7 +135,7 @@ class TestMain:
         assert raw_result.html == f'html{test_id}'
         assert raw_result.header_date == f'header_date{test_id}'
 
-    def test_get_raw_result_does_not_call_proxy_scrape_and_store_text_as_file_and_calls_restore_text_from_file_when_not_passed_should_request_nor_should_request_with_store_argument(self):
+    def test_get_raw_result_does_not_call_proxy_scrape_and_store_text_as_file_and_calls_restore_text_from_file_when_passed_no_request_and_not_passed_store_results_argument(self):
         test_id = 4
         self.mock_proxy_scrape.return_value = ProxyScrapeResult(html=f'html{test_id}_false', header_date=f'header_date{test_id}_false')
         self.mock_restore_text_from_file.side_effect = lambda file_name: f'html{test_id}' if file_name == f'store_file_name_html{test_id}' else f'header_date{test_id}'
@@ -141,7 +144,8 @@ class TestMain:
             scrape_ops_api_key=f'scrape_ops_api_key{test_id}',
             target_url=f'target_url{test_id}',
             store_file_name_html=f'store_file_name_html{test_id}',
-            store_file_name_header_date=f'store_file_name_header_date{test_id}'
+            store_file_name_header_date=f'store_file_name_header_date{test_id}',
+            no_request=True
         )
         with pytest.raises(AssertionError):
             self.mock_proxy_scrape.assert_any_call(f'target_url{test_id}', f'scrape_ops_endpoint{test_id}', f'scrape_ops_api_key{test_id}')
@@ -176,8 +180,8 @@ class TestMain:
             target_url=f'target_url{test_id}',
             store_file_name_html=f'store_file_name_html{test_id}',
             store_file_name_header_date=f'store_file_name_header_date{test_id}',
-            should_request=False,
-            should_request_with_store=False,
+            no_request=False,
+            store_results=False,
         )
         mock_verify.assert_called_with(f'html{test_id}')
         mock_find_count.assert_called_with(f'html{test_id}')
@@ -259,14 +263,14 @@ class TestMain:
         ]
         with patch.dict(
             os.environ, {'SCRAPE_OPS_ENDPOINT': f'scrape_ops_endpoint{test_id}', 'SCRAPE_OPS_API_KEY': f'scrape_ops_api_key{test_id}'}
-        ), patch.object(sys, 'argv', ['', 'should_request']), patch('main.scrape', new_callable=lambda: mock_scrape):
+        ), patch('main.scrape', new_callable=lambda: mock_scrape):
             main()
         capsys.readouterr()
         self.mock_create_analyzer.assert_any_call(f'target_url{test_id}-1', f'target_job_title{test_id}-1', f'target_job_location{test_id}-1')
         self.mock_create_analyzer.assert_any_call(f'target_url{test_id}-2', f'target_job_title{test_id}-2', f'target_job_location{test_id}-2')
         mock_scrape.assert_any_call(
-            should_request=True,
-            should_request_with_store=False,
+            no_request=False,
+            store_results=False,
             scrape_ops_endpoint=f'scrape_ops_endpoint{test_id}',
             scrape_ops_api_key=f'scrape_ops_api_key{test_id}',
             target_url=f'target_url{test_id}-1',
@@ -275,8 +279,8 @@ class TestMain:
             store_file_name_header_date=STORE_FILE_NAME_HEADER_DATE,
         )
         mock_scrape.assert_any_call(
-            should_request=True,
-            should_request_with_store=False,
+            no_request=False,
+            store_results=False,
             scrape_ops_endpoint=f'scrape_ops_endpoint{test_id}',
             scrape_ops_api_key=f'scrape_ops_api_key{test_id}',
             target_url=f'target_url{test_id}-2',
@@ -304,14 +308,14 @@ class TestMain:
         ]
         with patch.dict(
             os.environ, {'SCRAPE_OPS_ENDPOINT': f'scrape_ops_endpoint{test_id}', 'SCRAPE_OPS_API_KEY': f'scrape_ops_api_key{test_id}'}
-        ), patch.object(sys, 'argv', ['', 'should_request']), patch('main.scrape', new_callable=lambda: mock_scrape):
+        ), patch('main.scrape', new_callable=lambda: mock_scrape):
             main()
         self.mock_create_analyzer.assert_any_call(f'target_url{test_id}-2', f'target_job_title{test_id}-2', f'target_job_location{test_id}-2')
         assert 'Unsupported target url' in capsys.readouterr().out
         with pytest.raises(AssertionError):
             mock_scrape.assert_any_call(
-                should_request=True,
-                should_request_with_store=False,
+                no_request=False,
+                store_results=False,
                 scrape_ops_endpoint=f'scrape_ops_endpoint{test_id}',
                 scrape_ops_api_key=f'scrape_ops_api_key{test_id}',
                 target_url=f'target_url{test_id}-1',
@@ -320,8 +324,8 @@ class TestMain:
                 store_file_name_header_date=STORE_FILE_NAME_HEADER_DATE,
             )
         mock_scrape.assert_any_call(
-            should_request=True,
-            should_request_with_store=False,
+            no_request=False,
+            store_results=False,
             scrape_ops_endpoint=f'scrape_ops_endpoint{test_id}',
             scrape_ops_api_key=f'scrape_ops_api_key{test_id}',
             target_url=f'target_url{test_id}-2',
@@ -349,13 +353,13 @@ class TestMain:
         ]
         with patch.dict(
             os.environ, {'SCRAPE_OPS_ENDPOINT': f'scrape_ops_endpoint{test_id}', 'SCRAPE_OPS_API_KEY': f'scrape_ops_api_key{test_id}'}
-        ), patch.object(sys, 'argv', ['', 'should_request']), patch('main.scrape', new_callable=lambda: mock_scrape):
+        ), patch('main.scrape', new_callable=lambda: mock_scrape):
             main()
         self.mock_create_analyzer.assert_any_call(f'target_url{test_id}-1', f'target_job_title{test_id}-1', f'target_job_location{test_id}-1')
         self.mock_create_analyzer.assert_any_call(f'target_url{test_id}-2', f'target_job_title{test_id}-2', f'target_job_location{test_id}-2')
         mock_scrape.assert_any_call(
-            should_request=True,
-            should_request_with_store=False,
+            no_request=False,
+            store_results=False,
             scrape_ops_endpoint=f'scrape_ops_endpoint{test_id}',
             scrape_ops_api_key=f'scrape_ops_api_key{test_id}',
             target_url=f'target_url{test_id}-1',
@@ -364,8 +368,8 @@ class TestMain:
             store_file_name_header_date=STORE_FILE_NAME_HEADER_DATE,
         )
         mock_scrape.assert_any_call(
-            should_request=True,
-            should_request_with_store=False,
+            no_request=False,
+            store_results=False,
             scrape_ops_endpoint=f'scrape_ops_endpoint{test_id}',
             scrape_ops_api_key=f'scrape_ops_api_key{test_id}',
             target_url=f'target_url{test_id}-2',
@@ -377,3 +381,31 @@ class TestMain:
         self.mock_store_results.assert_called_with([
             Result(url=f'target_url{test_id}-2', job_title=f'target_job_title{test_id}-2', job_location=f'target_job_location{test_id}-2', count=2, scrape_date=datetime(2024, test_id, test_id, test_id, test_id, 2)),
         ])
+
+    def test_main_retrieve_scrape_ops_api_key_from_aws_secrets_manager_when_function_environment_is_aws_lambda(self, capsys):
+        test_id = 11
+        self.mock_get_secrets.return_value = {'SCRAPE_OPS_API_KEY': f'scrape_ops_api_key{test_id}'}
+        self.mock_get_targets.return_value = [
+            Target(url=f'target_url{test_id}', job_title=f'target_job_title{test_id}', job_location=f'target_job_location{test_id}'),
+        ]
+        mock_analyzer = MockAnalyzer()
+        self.mock_create_analyzer.side_effect = [mock_analyzer]
+        mock_scrape = MagicMock()
+        mock_scrape.side_effect = [
+            ScrapeResult(count=1, scrape_date=datetime(2024, test_id, test_id, test_id, test_id, 1)),
+        ]
+        with patch.dict(
+            os.environ, {'FUNCTION_ENVIRONMENT': 'aws_lambda', 'AWS_API_KEYS_SECRET_NAME': 'aws/secret/name', 'AWS_REGION': 'aws-region', 'SCRAPE_OPS_ENDPOINT': f'scrape_ops_endpoint{test_id}', 'SCRAPE_OPS_API_KEY': f'scrape_ops_api_key{test_id}_false'}
+        ), patch('main.scrape', new_callable=lambda: mock_scrape):
+            main()
+        mock_scrape.assert_any_call(
+            no_request=False,
+            store_results=False,
+            scrape_ops_endpoint=f'scrape_ops_endpoint{test_id}',
+            scrape_ops_api_key=f'scrape_ops_api_key{test_id}',
+            target_url=f'target_url{test_id}',
+            analyzer=mock_analyzer,
+            store_file_name_html=STORE_FILE_NAME_HTML,
+            store_file_name_header_date=STORE_FILE_NAME_HEADER_DATE,
+        )
+        self.mock_get_secrets.assert_called_with('aws/secret/name', 'aws-region')

@@ -1,4 +1,7 @@
+.venv/
 __pycache__/
+
+dist/
 
 content.txt
 header_date.txt
