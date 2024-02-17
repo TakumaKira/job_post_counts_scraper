@@ -1,6 +1,8 @@
 name: Deploy
 run-name: Deploy to lambda
-on: []
+on: [
+  workflow_dispatch,
+]
 jobs:
   Package-Zip:
     runs-on: ubuntu-latest # Packaging is needed to be executed on Linux to make psycopg2 work on Labmda environment. See https://stackoverflow.com/a/46366104
