@@ -11,6 +11,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
       - run: mkdir -p dist/lambda-package
+      - run: pip install poetry
       - run: poetry install --only main --sync
       - run: cp -r .venv/lib/python*/site-packages/* dist/lambda-package/
       - run: cp -r src/app/pkg/* dist/lambda-package/
