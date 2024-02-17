@@ -3,6 +3,8 @@ run-name: Deploy to lambda
 on:
   push:
   workflow_dispatch:
+env:
+  TEMP_FILE_NAME: lambda.zip
 jobs:
   Package-Zip:
     runs-on: ubuntu-latest # Packaging is needed to be executed on Linux to make psycopg2 work on Labmda environment. See https://stackoverflow.com/a/46366104
@@ -15,13 +17,13 @@ jobs:
       - run: poetry install --only main --sync
       - run: cp -r .venv/lib/python*/site-packages/* dist/lambda-package/
       - run: cp -r src/app/pkg/* dist/lambda-package/
-      - run: zip -r dist/lambda.zip dist/lambda-package/*
+      - run: zip -r dist/$TEMP_FILE_NAME dist/lambda-package/*
       - run: ls dist
       - name: Upload the zip file
         uses: actions/upload-artifact@v4
         with:
           name: lambda-package
-          path: dist/lambda.zip
+          path: dist/$TEMP_FILE_NAME
       - run: echo "🍏 This job's status is ${{ job.status }}."
   Update-Lambda:
     needs: Package-Zip
@@ -35,9 +37,9 @@ jobs:
       - name: Setup AWS CLI
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: $AWS_ACCESS_KEY_ID
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: $AWS_REGION
-      - run: aws s3 cp lambda.zip s3://$AWS_S3_BUCKET_NAME/$AWS_S3_OBJECT_NAME
-      - run: aws lambda update-function-code --function-name $AWS_LAMBDA_FUNCTION_NAME --zip-file --s3-bucket $AWS_S3_BUCKET_NAME --s3-key $AWS_S3_OBJECT_NAME
+          aws-region: ${{ env.AWS_REGION }}
+      - run: aws s3 cp $TEMP_FILE_NAME s3://${{ env.AWS_S3_BUCKET_NAME}}/${{ env.AWS_S3_OBJECT_NAME }}
+      - run: aws lambda update-function-code --function-name ${{ env.AWS_LAMBDA_FUNCTION_NAME }} --zip-file --s3-bucket ${{ env.AWS_S3_BUCKET_NAME}} --s3-key ${{ env.AWS_S3_OBJECT_NAME }}
       - run: echo "🍏 This job's status is ${{ job.status }}."
