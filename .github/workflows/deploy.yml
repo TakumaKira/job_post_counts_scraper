@@ -36,6 +36,7 @@ jobs:
       - run: ls
       - run: unzip ${{ env.TEMP_FILE_NAME }}
       - run: ls
+      - run: ls dist
       - name: Setup AWS CLI
         uses: aws-actions/configure-aws-credentials@v1
         with:
