@@ -18,6 +18,7 @@ jobs:
       - run: cd dist/lambda-package
       - run: zip -r ../lambda.zip .
       - run: cd ..
+      - run: ls
       - name: Upload the zip file
         uses: actions/upload-artifact@v4
         with:
