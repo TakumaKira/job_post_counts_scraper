@@ -15,10 +15,7 @@ jobs:
       - run: poetry install --only main --sync
       - run: cp -r .venv/lib/python*/site-packages/* dist/lambda-package/
       - run: cp -r src/app/pkg/* dist/lambda-package/
-      - run: cd dist/lambda-package
-      - run: zip -r ../lambda.zip .
-      - run: ls ../
-      - run: cd ..
+      - run: zip -r dist/lambda.zip dist/lambda-package/*
       - run: ls dist
       - name: Upload the zip file
         uses: actions/upload-artifact@v4
