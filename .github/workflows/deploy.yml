@@ -17,6 +17,7 @@ jobs:
       - run: cp -r src/app/pkg/* dist/lambda-package/
       - run: cd dist/lambda-package
       - run: zip -r ../lambda.zip .
+      - run: ls ../
       - run: cd ..
       - run: ls dist
       - name: Upload the zip file
