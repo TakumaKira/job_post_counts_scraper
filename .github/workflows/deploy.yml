@@ -37,6 +37,7 @@ jobs:
       - run: unzip ${{ env.TEMP_FILE_NAME }}
       - run: ls
       - run: ls dist
+      - run: ls dist/lambda-package
       - name: Setup AWS CLI
         uses: aws-actions/configure-aws-credentials@v1
         with:
