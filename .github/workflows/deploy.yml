@@ -1,6 +1,7 @@
 name: Deploy
 run-name: Deploy to lambda
 on:
+  push:
   workflow_dispatch:
 jobs:
   Package-Zip:
