@@ -17,13 +17,12 @@ jobs:
       - run: poetry install --only main --sync
       - run: cp -r .venv/lib/python*/site-packages/* dist/lambda-package/
       - run: cp -r src/app/pkg/* dist/lambda-package/
-      - run: zip -r dist/$TEMP_FILE_NAME dist/lambda-package/*
-      - run: ls dist
+      - run: zip -r dist/${{ env.TEMP_FILE_NAME }} dist/lambda-package/*
       - name: Upload the zip file
         uses: actions/upload-artifact@v4
         with:
           name: lambda-package
-          path: dist/$TEMP_FILE_NAME
+          path: dist/${{ env.TEMP_FILE_NAME }}
       - run: echo "🍏 This job's status is ${{ job.status }}."
   Update-Lambda:
     needs: Package-Zip
@@ -40,6 +39,6 @@ jobs:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-      - run: aws s3 cp $TEMP_FILE_NAME s3://${{ env.AWS_S3_BUCKET_NAME}}/${{ env.AWS_S3_OBJECT_NAME }}
+      - run: aws s3 cp ${{ env.TEMP_FILE_NAME }} s3://${{ env.AWS_S3_BUCKET_NAME}}/${{ env.AWS_S3_OBJECT_NAME }}
       - run: aws lambda update-function-code --function-name ${{ env.AWS_LAMBDA_FUNCTION_NAME }} --zip-file --s3-bucket ${{ env.AWS_S3_BUCKET_NAME}} --s3-key ${{ env.AWS_S3_OBJECT_NAME }}
       - run: echo "🍏 This job's status is ${{ job.status }}."
