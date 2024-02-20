@@ -18,7 +18,7 @@ def main(*args):
     print('Starting scraping...')
     SCRAPE_OPS_ENDPOINT = os.environ['SCRAPE_OPS_ENDPOINT']
     if os.getenv('FUNCTION_ENVIRONMENT') == 'aws_lambda':
-        secrets = aws_secrets_manager_connector.get_secrets(os.environ['AWS_API_KEYS_SECRET_NAME'], os.environ['AWS_REGION'])
+        secrets = aws_secrets_manager_connector.get_secrets(os.environ['AWS_API_KEY_SECRETS_NAME'], os.environ['AWS_REGION'])
         SCRAPE_OPS_API_KEY = secrets['SCRAPE_OPS_API_KEY']
     else:
         SCRAPE_OPS_API_KEY = os.environ['SCRAPE_OPS_API_KEY']
