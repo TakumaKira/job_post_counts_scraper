@@ -1,7 +1,9 @@
 name: Deploy
 run-name: Deploy to lambda
 on:
-  pull_request:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 env:
   TEMP_FILE_NAME: lambda.zip
