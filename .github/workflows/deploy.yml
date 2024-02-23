@@ -9,7 +9,7 @@ env:
   TEMP_FILE_NAME: lambda.zip
 jobs:
   Package-Zip:
-    runs-on: ubuntu-latest # Packaging is needed to be executed on Linux to make psycopg2 work on Labmda environment. See https://stackoverflow.com/a/46366104
+    runs-on: ubuntu-latest
     steps:
       - run: echo "Packaging..."
       - name: Check out repository code
