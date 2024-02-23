@@ -1,0 +1,15 @@
+name: Test
+run-name: Test
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  Test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Testing..."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - run: pip install poetry
+      - run: poetry install --sync
+      - run: poetry run python -m pytest

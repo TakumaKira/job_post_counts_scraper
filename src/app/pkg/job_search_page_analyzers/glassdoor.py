@@ -45,5 +45,7 @@ class GlassdoorJobSearchPageAnalyzer(JobSearchPageAnalyzer):
         if self.title:
             return self.title
         soup = BeautifulSoup(html, 'html.parser')
+        if not soup.title:
+            raise TitleException(f"Title not found in html '{html}'.")
         self.title = soup.title.string
         return self.title

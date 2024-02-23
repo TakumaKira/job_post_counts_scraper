@@ -28,7 +28,6 @@ def main(*args):
 
     print('Getting targets...')
     targets: List[Target] = repository.get_targets()
-    print(targets)
     print('Got targets...')
     results: List[Result] = []
 

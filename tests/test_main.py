@@ -395,7 +395,7 @@ class TestMain:
             ScrapeResult(count=1, scrape_date=datetime(2024, test_id, test_id, test_id, test_id, 1)),
         ]
         with patch.dict(
-            os.environ, {'FUNCTION_ENVIRONMENT': 'aws_lambda', 'AWS_API_KEYS_SECRET_NAME': 'aws/secret/name', 'AWS_REGION': 'aws-region', 'SCRAPE_OPS_ENDPOINT': f'scrape_ops_endpoint{test_id}', 'SCRAPE_OPS_API_KEY': f'scrape_ops_api_key{test_id}_false'}
+            os.environ, {'FUNCTION_ENVIRONMENT': 'aws_lambda', 'AWS_API_KEY_SECRETS_NAME': 'aws/secret/name', 'AWS_REGION': 'aws-region', 'SCRAPE_OPS_ENDPOINT': f'scrape_ops_endpoint{test_id}', 'SCRAPE_OPS_API_KEY': f'scrape_ops_api_key{test_id}_false'}
         ), patch('main.scrape', new_callable=lambda: mock_scrape):
             main()
         mock_scrape.assert_any_call(
