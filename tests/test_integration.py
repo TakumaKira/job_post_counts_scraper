@@ -64,6 +64,6 @@ class TestIntegration:
         self.mock_get.return_value = type('Response', (object,), {'text': '<html><head><title> react Jobs in Germany, January 2024 | Glassdoor</title></head><body></body></html>', 'headers': {'date': 'Sat, 13 Jan 2024 08:17:01 GMT'}})
         with patch.dict(
             os.environ, {'SCRAPE_OPS_ENDPOINT': f'scrape_ops_endpoint{test_id}', 'SCRAPE_OPS_API_KEY': f'scrape_ops_api_key{test_id}'}
-        ), patch.object(sys, 'argv', ['', 'should_request']):
+        ):
             main()
         assert 'does not include job counts.' in capsys.readouterr().out

@@ -16,7 +16,7 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from app.db import models
+from db import models
 target_metadata = models.Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -24,7 +24,7 @@ target_metadata = models.Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-from app.db import get_db_url
+from db import get_db_url
 db_url = get_db_url()
 
 # associate it with the alembic context
