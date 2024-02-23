@@ -1,0 +1,46 @@
+name: Deploy
+run-name: Deploy to lambda
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+env:
+  TEMP_FILE_NAME: lambda.zip
+jobs:
+  Package-Zip:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Packaging..."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - run: mkdir -p dist/lambda-package
+      - run: pip install poetry
+      - run: poetry install --only main --sync
+      - run: cp -r .venv/lib/python*/site-packages/* dist/lambda-package/
+      - run: cp -r src/app/pkg/* dist/lambda-package/
+      - run: (cd dist/lambda-package && zip -r ../${{ env.TEMP_FILE_NAME }} .)
+      - name: Upload the zip file
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambda-package
+          path: dist/${{ env.TEMP_FILE_NAME }}
+      - run: echo "🍏 This job's status is ${{ job.status }}."
+  Update-Lambda:
+    needs: Package-Zip
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Updating lambda..."
+      - name: Download the zip file from Package-Zip
+        uses: actions/download-artifact@v4
+        with:
+          name: lambda-package
+      - name: Setup AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ vars.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - run: aws s3 cp ${{ env.TEMP_FILE_NAME }} s3://${{ vars.AWS_S3_BUCKET_NAME}}/${{ vars.AWS_S3_OBJECT_NAME }}
+      - run: aws lambda update-function-code --function-name ${{ vars.AWS_LAMBDA_FUNCTION_NAME }} --s3-bucket ${{ vars.AWS_S3_BUCKET_NAME}} --s3-key ${{ vars.AWS_S3_OBJECT_NAME }}
+      - run: echo "🍏 This job's status is ${{ job.status }}."
