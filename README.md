@@ -108,10 +108,10 @@ DB_PORT=your_db_port \
 DB_NAME=your_db_name \
 SCRAPE_OPS_ENDPOINT=https://proxy.scrapeops.io/v1/ \
 SCRAPE_OPS_API_KEY=your-scrape-ops-api-key \
-poetry run python src/app.main.py
+poetry run python src/app/pkg/main.py
 ```
 
-For test run on your local terminal, you can omit `ENV` to `DB_NAME` to run this app with `dev.db`.
+For test run on your local terminal, you can omit from `ENV` to `DB_NAME` to run this app with `dev.db`.
 
 If you provide `no_request` arg at the last of the command, it prevents this function from sending a request to ScrapeOps.
 
@@ -136,9 +136,9 @@ I chose ScrapeOps for proxy scraping requests to Glassdoor and to run the scrape
 ### Required environment variables
 
 `FUNCTION_ENVIRONMENT` needs to be `aws_lambda`.
+`AWS_RDS_ENDPOINT` has to tell your RDS database endpoint.
 `AWS_DB_SECRETS_NAME`	has to tell your AWS Secrets Manager secrets name which contains `username` / `password` / `port` / `dbname` of your target database.
 `AWS_API_KEY_SECRETS_NAME` has to tell your AWS Secrets Manager secrets name which contains your API key for scrape proxy service.
-`AWS_RDS_ENDPOINT` has to tell your RDS database endpoint.
 `SCRAPE_OPS_ENDPOINT` needs to be `https://proxy.scrapeops.io/v1/`.
 
 ### Package this manually to zip for uploading to AWS Lambda
