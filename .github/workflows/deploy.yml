@@ -3,7 +3,7 @@ run-name: Deploy to lambda
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
 env:
   TEMP_FILE_NAME: lambda.zip
