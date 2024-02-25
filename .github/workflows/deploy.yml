@@ -1,16 +1,14 @@
 name: Deploy
 run-name: Deploy to lambda
 on:
-  pull_request:
+  push:
     branches:
       - main
-    types: [closed]
   workflow_dispatch:
 env:
   TEMP_FILE_NAME: lambda.zip
 jobs:
   Package-Zip:
-    if: ${{ github.event.pull_request.merged }}
     runs-on: ubuntu-latest
     steps:
       - run: echo "Packaging..."
@@ -29,7 +27,6 @@ jobs:
           path: dist/${{ env.TEMP_FILE_NAME }}
       - run: echo "🍏 This job's status is ${{ job.status }}."
   Update-Lambda:
-    if: ${{ github.event.pull_request.merged }}
     needs: Package-Zip
     runs-on: ubuntu-latest
     steps:
